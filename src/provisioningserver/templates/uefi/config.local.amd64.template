@@ -3,17 +3,44 @@ set timeout=0
 
 menuentry 'Local' {
     echo 'Booting local disk...'
-    {{if kernel_params.osystem == "windows"}}
-    search --set=root --file /efi/Microsoft/Boot/bootmgfw.efi
-    chainloader /efi/Microsoft/Boot/bootmgfw.efi
-    {{elif kernel_params.osystem == "centos"}}
-    search --set=root --file /efi/centos/grubx64.efi
-    chainloader /efi/centos/grubx64.efi
-    {{elif kernel_params.osystem == "rhel"}}
-    search --set=root --file /efi/redhat/grubx64.efi
-    chainloader /efi/redhat/grubx64.efi
-    {{else}}
-    search --set=root --file /efi/ubuntu/grubx64.efi
-    chainloader /efi/ubuntu/grubx64.efi
-    {{endif}}
+#    {{if kernel_params.osystem == "windows"}}
+#    search --set=root --file /efi/Microsoft/Boot/bootmgfw.efi
+#    chainloader /efi/Microsoft/Boot/bootmgfw.efi
+#    {{elif kernel_params.osystem == "centos"}}
+#    search --set=root --file /efi/centos/grubx64.efi
+#    chainloader /efi/centos/grubx64.efi
+#    {{elif kernel_params.osystem == "rhel"}}
+#    search --set=root --file /efi/redhat/grubx64.efi
+#    chainloader /efi/redhat/grubx64.efi
+##    {{elif kernel_params.osystem == "debian-9.11"}}
+##    search --set=root --file /efi/redhat/grubx64.efi
+##    chainloader /efi/debian/grubx64.efi
+#    {{else}}
+#    search --set=root --file /efi/ubuntu/grubx64.efi
+#    chainloader /efi/ubuntu/grubx64.efi
+#    {{endif}}
+
+### Reference:
+### https://github.com/juan-vg/maas/blob/6635951fa7c4f900de45fad28bd73591a2591280/src/provisioningserver/templates/uefi/config.local.amd64.template
+
+   for bootloader in \
+            boot/bootx64.efi \
+            ubuntu/shimx64.efi \
+            ubuntu/grubx64.efi \
+            debian/shimx64.efi \
+            debian/grubx64.efi \
+            centos/shimx64.efi \
+            centos/grubx64.efi \
+            rhel/shimx64.efi \
+            rhel/grubx64.efi \
+            red/grubx64.efi \
+            Microsoft/Boot/bootmgfw.efi; do
+        search --set=root --file /efi/$bootloader
+        if [ $? -eq 0 ]; then
+            chainloader /efi/$bootloader
+            boot
+        fi
+    done
+    # If no bootloader is found exit and allow the next device to boot.
+    exit
 }
