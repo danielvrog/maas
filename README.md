@@ -117,8 +117,6 @@ Log in to the MAAS UI at `http://<your.maas.ip>:5240/MAAS/`  and complete the fo
 
 
 
-
-
 ------
 
 ## Debian image
@@ -170,6 +168,54 @@ maas $MAAS_USER boot-resources create name=custom/debian title="$IMAGE_ARCHIVE_N
 Following the naming convention, in order to map `curtin_userdata` for Debian to the `generic\debian` OS, you need to have the following file: `/etc/maas/preseeds/curtin_userdata_custom_amd64_generic_debian` - [link](http://c4scm:7990/projects/SCADA/repos/maas/commits/8a217699e7f1cd705e86ac030ca7d0d6c1512f36)
 
 **NOTE**: pay attention to `/boot/efi` partition !
+
+
+
+------
+
+## Adding Servers to MAAS
+
+
+
+
+
+
+
+------
+
+## REST API
+
+### Authentication
+
+OSS MAAS uses OAUTH v1 tokens for authentication. Once you obtain a token it will be in in following format: 
+
+```php
+/(?<oauth_consumer_key>^[a-zA-Z0-9]{18}):{1}(?<oauth_token>[a-zA-Z0-9]{18}):{1}(?<oauth_signature>[a-zA-Z0-9]{32})$/s
+```
+
+In order to call MAAS API endpoint, proper authentication header need to be set:
+
+``````bash
+TIMESTMAP=$(date +%s)
+OAUTH_CONSUMER_KEY=$(echo $TOKEN | cut -f1 -d:)
+OAUTH_TOKEN=$(echo $TOKEN | cut -f2 -d:)
+OAUTH_SIGNATURE=$(echo $TOKEN | cut -f3 -d:)
+
+# NOTE: piggyback a URL encoded space character before OAUTH_SIGNATURE
+curl -X GET \
+  http://<your.maas.ip>:5240/MAAS/api/2.0/<endpoint>/ \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Authorization: OAuth oauth_consumer_key="$OAUTH_CONSUMER_KEY",oauth_token="$OAUTH_TOKEN",oauth_signature_method="PLAINTEXT",oauth_timestamp="1571129113",oauth_nonce="6zpI8tzvLNT",oauth_version="1.0",oauth_signature="%26$OAUTH_SIGNATURE"'
+``````
+
+
+
+### API Endpoints
+
+See official documentation - [link](https://maas.io/docs/api)
+
+[Postman](https://postman.co/) [Collection is WIP](https://documenter.getpostman.com/view/3756960/SVtYRmE8) and will be added to this repo later on
 
 
 
