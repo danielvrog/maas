@@ -109,11 +109,9 @@ Log in to the MAAS UI at `http://<your.maas.ip>:5240/MAAS/`  and complete the fo
 
 ## Customizing MAAS
 
-### Issue #1
+* Some configuration values are not available via UI or config files. If you need to adjust timeouts, you will have to edit `/usr/lib/python3/dist-packages/maasserver/node_status.py` - [link](http://c4scm:7990/projects/SCADA/repos/maas/browse/src/maasserver/node_status.py#286)
 
-### Solution #1
-
-#### Backup for solution #1
+* In order to enable Debian support for UEFI boot, the config template ` /usr/lib/python3/dist-packages/provisioningserver/templates/uefi/config.local.amd64.template` need to be adjusted - [link](http://c4scm:7990/projects/SCADA/repos/maas/commits/b662dc514a575565f429f74ef3fa4a92b93860c7)
 
 
 
@@ -169,9 +167,9 @@ maas $MAAS_USER boot-resources create name=custom/debian title="$IMAGE_ARCHIVE_N
 
 ## Curtin 
 
+Following the naming convention, in order to map `curtin_userdata` for Debian to the `generic\debian` OS, you need to have the following file: `/etc/maas/preseeds/curtin_userdata_custom_amd64_generic_debian` - [link](http://c4scm:7990/projects/SCADA/repos/maas/commits/8a217699e7f1cd705e86ac030ca7d0d6c1512f36)
 
-
-
+**NOTE**: pay attention to `/boot/efi` partition !
 
 
 
