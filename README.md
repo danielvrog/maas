@@ -121,17 +121,25 @@ Log in to the MAAS UI at `http://<your.maas.ip>:5240/MAAS/`  and complete the fo
 
 ## Debian image
 
+MAAS is not supporting Debian images out of the box, hence some work is needed to add a custom image:
+
 ``````bash
+###########################################
 # Downlead raw OS image
+###########################################
 DOWNLOAD_DIR=/tmp
 cd $DOWNLOAD_DIR
 wget https://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.raw
 
+###########################################
 # Mount OS image
+###########################################
 sudo mkdir /mnt/custom-os-loop
 sudo mount -o ro,loop,offset=1048576,sync debian-9-openstack-amd64.raw
 
+###########################################
 # Implement grub and ufiboot workaround for Debian 9
+###########################################
 sudo chroot /mnt/custom-os-loop
 sudo apt update
 sudo apt install -y apt-transport-https ca-certificates efibootmgr xfsprogs
@@ -140,15 +148,19 @@ echo "deb http://ftp.debian.org/debian buster main contrib non-free" >> /etc/apt
 sudo apt update
 exit
 
+###########################################
 # Create image archive and unmount
+###########################################
 cd /mnt/custom-os-loop
 IMAGE_ARCHIVE_NAME="debian-9-openstack-custom-amd64"
 tar czvf $DOWNLOAD_DIR/$IMAGE_ARCHIVE_NAME.tgz .
 sudo umount /mnt/custom-os-loop
 
+###########################################
 # Add new custoem image to MAAS
 # NOTE: use 'name=custom/debian' only!!! 
 #       MAAS parse the parameter in order to determine which EFI template to use.
+###########################################
 cd $DOWNLOAD_DIR
 MAAS_USER="$(whoami)"
 MAAS_API_KEY="enter-here-your-maas-api-key"
@@ -156,8 +168,6 @@ MAAS_API_SERVER="http://<your.maas.ip>:5240/MAAS"
 maas login $MAAS_USER $MAAS_API_SERVER $MAAS_API_KEY
 maas $MAAS_USER boot-resources create name=custom/debian title="$IMAGE_ARCHIVE_NAME" architecture=amd64/generic content@=$DOWNLOAD_DIR/$IMAGE_ARCHIVE_NAME.tgz
 ``````
-
-
 
 
 
@@ -175,9 +185,7 @@ Following the naming convention, in order to map `curtin_userdata` for Debian to
 
 ## Adding Servers to MAAS
 
-
-
-
+...
 
 
 
@@ -223,7 +231,9 @@ See official documentation - [link](https://maas.io/docs/api)
 
 ## Known issues
 
-
+1. Custom Debian 9 OS image is polluted with Debian 10 sources that were necessary for grub\uefi\boot workaround. Host provisioning must take care of it!
+2.  Since our HW varies a lot, Curtin cloud-init config is taking care only of a single disk `/dev/sda` .
+3. Partition order need to be changed to allow root `/` partition resizing
 
 
 
