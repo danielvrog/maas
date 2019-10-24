@@ -1,3 +1,4 @@
+#@IgnoreInspection BashAddShebang
 #cloud-config
 verbosity: 3
 
@@ -18,6 +19,24 @@ debconf_selections:
 
 late_commands:
   builtin: []
+
+#  Old HP servers entering a PXE boot loop because Debian installation is not set to be the next boot option.
+  01_efibootmgr:
+  - curtin
+  - in-target
+  - --
+  - sh
+  - -c
+  - "#!/bin/sh\n\
+     echo \"===List efibootmgr boot options:===\"\n\
+     efibootmgr\n\
+     echo \"===List efibootmgr debian id if exists:===\"\n\
+     DEBIAN_BOOT_ID=$(efibootmgr | grep debian | cut -f1 -d\" \" | sed \"s/Boot\\|*//g\")\n\
+     echo $DEBIAN_BOOT_ID\n\
+     [ -e \"${DEBIAN_BOOT_ID}\" ] echo \"===Set efibootmgr BootCurrent to debian id===\"\n\
+     [ -e \"${DEBIAN_BOOT_ID}\" ] efibootmgr --bootnext $DEBIAN_BOOT_ID\n
+    "
+
 
 storage:
   version: 1
