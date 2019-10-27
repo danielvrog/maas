@@ -28,13 +28,17 @@ late_commands:
   - sh
   - -c
   - "#!/bin/sh\n\
+     set -x\n\
      echo \"===List efibootmgr boot options:===\"\n\
      efibootmgr\n\
      echo \"===List efibootmgr debian id if exists:===\"\n\
      DEBIAN_BOOT_ID=$(efibootmgr | grep debian | cut -f1 -d\" \" | sed \"s/Boot\\|*//g\")\n\
      echo $DEBIAN_BOOT_ID\n\
-     [ -e \"${DEBIAN_BOOT_ID}\" ] echo \"===Set efibootmgr BootCurrent to debian id===\"\n\
-     [ -e \"${DEBIAN_BOOT_ID}\" ] efibootmgr --bootnext $DEBIAN_BOOT_ID\n
+     if [ -n \"$DEBIAN_BOOT_ID\" ]\n\
+     then\n\
+          echo \"===Set efibootmgr BootCurrent to debian id===\"\n\
+          efibootmgr --bootnext $DEBIAN_BOOT_ID\n\
+     fi\n
     "
 
 
