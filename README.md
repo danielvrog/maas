@@ -208,13 +208,14 @@ TIMESTMAP=$(date +%s)
 OAUTH_CONSUMER_KEY=$(echo $TOKEN | cut -f1 -d:)
 OAUTH_TOKEN=$(echo $TOKEN | cut -f2 -d:)
 OAUTH_SIGNATURE=$(echo $TOKEN | cut -f3 -d:)
+OAUTH_NONCE=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 11 | head -n 1)
 
-# NOTE: piggyback a URL encoded space character before OAUTH_SIGNATURE
+# NOTE: piggyback a URL encoded & character before OAUTH_SIGNATURE
 curl -X GET \
   http://<your.maas.ip>:5240/MAAS/api/2.0/<endpoint>/ \
   -H 'Accept: */*' \
   -H 'Accept-Encoding: gzip, deflate' \
-  -H 'Authorization: OAuth oauth_consumer_key="$OAUTH_CONSUMER_KEY",oauth_token="$OAUTH_TOKEN",oauth_signature_method="PLAINTEXT",oauth_timestamp="1571129113",oauth_nonce="6zpI8tzvLNT",oauth_version="1.0",oauth_signature="%26$OAUTH_SIGNATURE"'
+  -H 'Authorization: OAuth oauth_consumer_key="$OAUTH_CONSUMER_KEY",oauth_token="$OAUTH_TOKEN",oauth_signature_method="PLAINTEXT",oauth_timestamp="1571129113",oauth_nonce="$OAUTH_NONCE",oauth_version="1.0",oauth_signature="%26$OAUTH_SIGNATURE"'
 ``````
 
 
