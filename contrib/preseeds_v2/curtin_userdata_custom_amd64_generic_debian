@@ -1,1 +1,145 @@
-#cloud-configverbosity: 3early_commands:  000_update_repositories: apt update  010_install_apt_https: apt install -y apt-transport-https ca-certificateskernel:  fallback-package: linux-image-amd64  package: linux-image-amd64debconf_selections: maas: |  {{for line in str(curtin_preseed).splitlines()}}  {{line}}  {{endfor}}late_commands:  builtin: []#  Old HP servers entering a PXE boot loop because Debian installation is not set to be the next boot option.  01_efibootmgr:  - curtin  - in-target  - --  - sh  - -c  - "#!/bin/sh\n\     set -x\n\     echo \"===List efibootmgr boot options:===\"\n\     efibootmgr\n\     echo \"===List efibootmgr debian id if exists:===\"\n\     DEBIAN_BOOT_ID=$(efibootmgr | grep debian | cut -f1 -d\" \" | sed \"s/Boot\\|*//g\")\n\     echo $DEBIAN_BOOT_ID\n\     if [ -n \"$DEBIAN_BOOT_ID\" ]\n\     then\n\          echo \"===Set efibootmgr BootCurrent to debian id===\"\n\          efibootmgr --bootnext $DEBIAN_BOOT_ID\n\     fi\n    "storage:  version: 1  config:  # Disk    - id: sda      type: disk      ptable: gpt      path: /dev/sda      name: main_disk      wipe: superblock      grub_device: true  # Partitions    - id: boot      type: partition      number: 1      size: 1MB      device: sda      flag: bios_grub    - id: sda1      type: partition      number: 2      size: 35GB      device: sda      flag: boot    - id: sda2      type: partition      number: 3      size: 100MB      device: sda#    - id: sda3#      type: partition#      number: 4#      size: 100GB#      device: sda  # Format    - id: sda1-format-root      type: format      fstype: ext4      volume: sda1    - id: sda2-format-efi      type: format      fstype: fat32      volume: sda2#    - id: sda3-format-home#      type: format#      fstype: ext4#      volume: sda3  # Mount    - id: sda1-mount-root      type: mount      path: /      device: sda1-format-root    - id: sda2-mount-efi      type: mount      path: /boot/efi      device: sda2-format-efi#    - id: sda3-mount-home#      type: mount#      path: /home#      device: sda3-format-home
+#cloud-config
+verbosity: 3
+
+early_commands:
+  000_update_repositories: apt update
+  010_install_apt_https: apt install -y apt-transport-https ca-certificates
+
+kernel:
+  fallback-package: linux-image-amd64
+  package: linux-image-amd64
+
+debconf_selections:
+ maas: |
+  {{for line in str(curtin_preseed).splitlines()}}
+  {{line}}
+  {{endfor}}
+
+
+late_commands:
+  builtin: []
+
+#  Old HP servers entering a PXE boot loop because Debian installation is not set to be the next boot option.
+  01_efibootmgr:
+  - curtin
+  - in-target
+  - --
+  - sh
+  - -c
+  - "#!/bin/sh\n\
+     set -x\n\
+     echo \"===List efibootmgr boot options:===\"\n\
+     efibootmgr\n\
+     echo \"===List efibootmgr debian id if exists:===\"\n\
+     DEBIAN_BOOT_ID=$(efibootmgr | grep debian | cut -f1 -d\" \" | sed \"s/Boot\\|*//g\")\n\
+     echo $DEBIAN_BOOT_ID\n\
+     if [ -n \"$DEBIAN_BOOT_ID\" ]\n\
+     then\n\
+          echo \"===Set efibootmgr BootCurrent to debian id===\"\n\
+          efibootmgr --bootnext $DEBIAN_BOOT_ID\n\
+     fi\n
+    "
+
+
+storage:
+  version: 1
+  config:
+  # Disk
+    - id: sda
+      type: disk
+      ptable: gpt
+      path: /dev/sda
+      name: main_disk
+      wipe: superblock
+      grub_device: true
+
+  # Partitions
+    - id: boot
+      type: partition
+      number: 1
+      size: 1MB
+      device: sda
+      flag: bios_grub
+    - id: sda1
+      type: partition
+      number: 2
+      size: 35GB
+      device: sda
+      flag: boot
+    - id: sda2
+      type: partition
+      number: 3
+      size: 100MB
+      device: sda
+    - id: sda3
+      type: partition
+      number: 4
+      size: 10GB
+      device: sda
+    - id: sda4
+      type: partition
+      number: 5
+      size: 30GB
+      device: sda
+    - id: sda5
+      type: partition
+      number: 6
+      size: 50GB
+      device: sda
+    - id: sda6
+      type: partition
+      number: 7
+      size: 25GB
+      device: sda
+
+  # Format
+    - id: sda1-format-root
+      type: format
+      fstype: ext4
+      volume: sda1
+    - id: sda2-format-efi
+      type: format
+      fstype: fat32
+      volume: sda2
+    - id: sda3-format-home
+      type: format
+      fstype: ext4
+      volume: sda3
+    - id: sda4-format-tmp
+      type: format
+      fstype: ext4
+      volume: sda4
+    - id: sda5-format-log
+      type: format
+      fstype: ext4
+      volume: sda5
+    - id: sda6-format-docker
+      type: format
+      fstype: ext4
+      volume: sda6
+
+  # Mount
+    - id: sda1-mount-root
+      type: mount
+      path: /
+      device: sda1-format-root
+    - id: sda2-mount-efi
+      type: mount
+      path: /boot/efi
+      device: sda2-format-efi
+    - id: sda3-mount-home
+      type: mount
+      path: /home
+      device: sda3-format-home
+    - id: sda4-mount-tmp
+      type: mount
+      path: /tmp
+      device: sda4-format-tmp
+    - id: sda5-mount-log
+      type: mount
+      path: /var/log
+      device: sda5-format-log
+    - id: sda6-mount-docker
+      type: mount
+      path: /var/lib/docker
+      device: sda6-format-docker
